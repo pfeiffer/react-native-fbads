@@ -44,7 +44,21 @@ RCT_EXPORT_METHOD(
 #pragma mark - FBInterstitialAdDelegate
 
 - (void)interstitialAdDidLoad:(FBInterstitialAd *)interstitialAd {
-  [interstitialAd showAdFromRootViewController:RCTPresentedViewController()];
+  // To support displaying modally, we recurse through all presented controllers
+  // to find the top-most controller to display the video controller modally from:
+  UIWindow *window = [[[UIApplication sharedApplication] delegate] window];
+  UIViewController *rootViewController = window.rootViewController;
+  UIViewController *topViewController = [self topViewController:rootViewController];
+    
+  [interstitialAd showAdFromRootViewController:topViewController];
+}
+
+- (UIViewController *)topViewController:(UIViewController *)rootViewController
+{
+    if (rootViewController.presentedViewController) {
+        return [self topViewController:rootViewController.presentedViewController];
+    }
+    return rootViewController;
 }
 
 - (void)interstitialAd:(FBInterstitialAd *)interstitialAd didFailWithError:(NSError *)error {
